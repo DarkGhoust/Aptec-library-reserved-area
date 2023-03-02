@@ -1,3 +1,0 @@
-jQuery('').click( function(e){
-
-})
