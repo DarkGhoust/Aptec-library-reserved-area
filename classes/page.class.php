@@ -4,14 +4,8 @@ if (!defined('ABSPATH')) exit; // Exit if accessed directly
 
 require_once('database.class.php');
 
-class Aptec_Page{
-
-    public static function init()
-    {
-        $class = __CLASS__;
-        new $class;
-    }
-
+class Aptec_Page
+{
     function __construct( $area, $email, $name )
     {
         add_shortcode( 'revisor-works', array($this, 'show_all_works'));
@@ -22,13 +16,9 @@ class Aptec_Page{
 		$this->name = $name;
     }
 
-    function show_all_works($atts){
+    function show_all_works( $atts ){
         $formId = $atts['id'];
         $data = $this->db->get_all_submissions( $formId, $this->area, $this->email );
-// 		echo "<pre>";
-// 		print_r ($data); 
-// 		echo "</pre>";
-
         ob_start();	
         ?>
 		
@@ -59,16 +49,11 @@ class Aptec_Page{
         return ob_get_clean();
     }
 
-    function show_all_marks($atts){
+    function show_all_marks( $atts ){
         $formId = $atts['id'];
         $data = $this->db->get_all_marks( $formId, $this->area, $this->email );
 		
 		$data = $this->calculate_total_points( $data );
-		
-// 		echo "<pre>";
-// 		print_r ($data); 
-// 		echo "</pre>";
-// 		return true;
         ob_start();	
         ?><table class="productivity-table" id="marks">
 			<thead>
@@ -77,7 +62,7 @@ class Aptec_Page{
 					<th>Pontuação</th>
 					<th>Título</th>
 					<th>Nome de revisor</th>
-					<th>Número de submissões: <?=count($data);?></th>
+					<th>Número de submissões: <?=count( $data );?></th>
 					<th>Pontuação total</th>
 				</tr>
 			</thead><?
@@ -144,16 +129,16 @@ class Aptec_Page{
     }
 	
 	function calculate_total_points( $table ){
-		$table = $this->push_workId_to_top_table( $table );
+		$table = $this->push_workId_to_parent_array( $table );
 		
-		$key_values = array_column($table, 'work_id'); 
-		array_multisort($key_values, SORT_ASC, $table);
+		$key_values = array_column( $table, 'work_id' ); 
+		array_multisort( $key_values, SORT_ASC, $table );
 		
 		$points = 0;
 		$workID = 0;
 		$rowsToChange = [];
-		foreach ($table as $tableRowID => $tableRow){
-			if ($workID != $tableRow['work_id'] ){
+		foreach ( $table as $tableRowID => $tableRow ){
+			if ( $workID != $tableRow['work_id'] ){
 				foreach ($rowsToChange as $row){
 					$table[$row]['total_score'] = $points;
 				}
@@ -168,15 +153,15 @@ class Aptec_Page{
 				array_push( $rowsToChange, $tableRowID );
 			}
 		}
-		foreach ($rowsToChange as $row){
+		foreach ( $rowsToChange as $row ){
 			$table[$row]['total_score'] = $points;
 		}
 		
 		return $table;
 	}
 	
-	function push_workId_to_top_table( $table ){
-		foreach ($table as $tableRowID => $tableRow){
+	function push_workId_to_parent_array( $table ){
+		foreach ( $table as $tableRowID => $tableRow ){
 			$result = unserialize( $tableRow["resultsFreetype"] ); 		
 			$form 	= unserialize( $tableRow["formFreetype"] ); 
 

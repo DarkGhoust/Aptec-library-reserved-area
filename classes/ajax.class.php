@@ -12,12 +12,6 @@ class Ajax_Helper{
 		"nome para cartão de identificação no congresso"
 	];
 
-    public static function init()
-    {
-        $class = __CLASS__;
-        new $class;
-    }
-
     function __construct()
     {
         add_action('wp_ajax_show_detailed_submission', array( $this, 'show_detailed_submission' ));
@@ -28,30 +22,36 @@ class Ajax_Helper{
     function show_detailed_submission(){
 		$Id = $_GET['id'];
         $tableRow = $this->db->get_submission_by_id( $Id );
-        $result = unserialize($tableRow["resultsMcq"]);		
-        $form 	= unserialize($tableRow["formMcq"]);
+
+        $this->generate_table_msq();
+        $this->generate_table_freetype();
+
+        wp_die();
+    }
+
+    function generate_table_msq( $tableRow ){
+        $result = unserialize( $tableRow["resultsMcq"] );		
+        $form 	= unserialize( $tableRow["formMcq"] );
+
         echo "<table>";
-        foreach ($result as $key => $value){
-			if( !$this->is_allowed_title( $form[$key]['title']) ){
+        foreach ( $result as $key => $value ){
+			if( !$this->is_allowed_title( $form[$key]['title'] )){
 				continue;
 			}
             $selected = $value['options'];
-            if (!empty($selected)) {
+            if ( !empty($selected) ) {
                 echo $this->generate_table_row( $form[$key]['title'], $form[$key]['settings']['options'][$selected[0]]['label'] );
             } 
         }
         echo "</table>";
+    }
 
-
+    function generate_table_freetype( $tableRow ){
         $result = unserialize( $tableRow["resultsFreetype"] ); 		
         $form 	= unserialize( $tableRow["formFreetype"] );
         
-        // echo "<pre>";
-        // print_r($result);
-        // echo "</pre>";
-        
         echo "<table>";
-        foreach ($result as $key => $value){
+        foreach ( $result as $key => $value ){
 			if( !$this->is_allowed_title( $form[$key]['title']) ){
 				continue;
 			}
@@ -61,14 +61,13 @@ class Ajax_Helper{
                     $file = $this->db->get_file_by_id($fileId);
                     $fileHTML = $fileHTML . "<p><a target='_blank' href='{$file['guid']}'>{$file['name']}</a></p>";
                 }
-                echo $this->generate_table_row($form[$key]['title'], $fileHTML );
+                echo $this->generate_table_row( $form[$key]['title'], $fileHTML );
             }
             if (!empty( $value['value'])) {
-                echo $this->generate_table_row($form[$key]['title'], $value['value']);
+                echo $this->generate_table_row( $form[$key]['title'], $value['value'] );
             } 
         }
         echo "</table>";
-        wp_die();
     }
 
     function get_title( $result, $form ){
@@ -81,7 +80,7 @@ class Ajax_Helper{
 	
 	function is_allowed_title($title){
 		$title = trim(strtolower($title));
-		if (in_array($title, $this->notAllowedDetails)){
+		if ( in_array($title, $this->notAllowedDetails) ){
 			return false;
 		}	
 		return true;
